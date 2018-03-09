@@ -1,20 +1,204 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{A8A498F5-9147-4348-BC46-3AACCFBD92EF}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A8A498F5-9147-4348-BC46-3AACCFBD92EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8A498F5-9147-4348-BC46-3AACCFBD92EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8A498F5-9147-4348-BC46-3AACCFBD92EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8A498F5-9147-4348-BC46-3AACCFBD92EF}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Office.Tools.Word;
+using thisDocument = Microsoft.Office.Tools.Word.DocumentBase;
+using Word = Microsoft.Office.Interop.Word;
+
+namespace Project1
+{
+    class FirstProject
+    {
+        static void Main(string[] args)
+        {
+
+            Console.WriteLine("Please enter the full file path name WITHOUT QUOTES:"); //you need to delete the quotes around the file name
+            object fileInput = Console.ReadLine(); //reads in afile name (word docuemnt)
+            Console.WriteLine("Please enter a new file name:");
+            
+            object saveFileAs = Console.ReadLine(); //sets the new file name to an object that will become the modified document
+            CreateTextFile(fileInput, saveFileAs);
+
+
+        }
+        public static void CreateTextFile(object fileName, object saveAsAFile)
+        {
+
+
+            Word.Document doc1 = null;  //creates a new document and sets it to what you want it to be
+            object missing = Type.Missing;
+            object readOnly = true;
+            object isVisual = false;
+            string text;
+            Word.Application wordApp = new Word.Application();  //creates a new word application in which I make to document work
+            
+
+            if (File.Exists((string)fileName)) //checks to make sure that the file exists
+            {
+
+                try
+                {
+
+                    //Word.Application wordApp = new Word.Application(); //creates the word application which makes it able to be altered
+                    doc1 = wordApp.Documents.Open(ref fileName, ref missing, ref readOnly, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref isVisual, ref missing, ref missing, ref missing, ref missing);
+                    
+                    doc1.Activate(); //activates the new document that is created
+                    text = doc1.Content.Text; //sets the variable text equal to the text of the entire document
+                   
+                    //doc1.Application.ActiveDocument.Range(doc1.Application.ActiveDocument.Content.Start, doc1.Application.ActiveDocument.Content.End).Select();
+                    
+                    wordApp.Visible = false;
+                    object indentStyle = "Normal Indent"; //i dont think i actutally use this but this is a specific style in which i can set the doc to be                   
+                    Word.Range rng1 = doc1.Content;  //sets the 1 range of my document equal to my entire document content
+                    rng1.Select();
+                    if (doc1.Paragraphs.LineSpacing != 24.0F) //LineSpacing is in increments of 12.0F  Must be a float
+                    {
+                        doc1.Paragraphs.LineSpacing = 24.0F;
+                        rng1.Select();
+                    }
+                        rng1.Select();
+
+                        string name = "\"Name\"";
+                        string teacher = "\n \"Teacher\"";
+                        string subject = "\n \"Subject\"";
+                        string due = "\n \"Date due (ex. 10 Febuary 2014)\" \n";
+                        rng1.InsertBefore(due);  //inserts prompts in reverse order because it will continue to insert them at the beginning of the doc
+                        rng1.InsertBefore(subject);
+                        rng1.InsertBefore(teacher);
+                        rng1.InsertBefore(name);
+                        for (int k = 1; k < 5; k++)
+                        {
+                            Word.Range textRng = doc1.Paragraphs[k].Range;
+                            textRng.Select();
+                            textRng.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;  //aligns all the prompts on the left side
+
+                        }
+                    
+                        rng1.Font.Size = 12;
+                        rng1.Font.Name = "Calibri";
+                       
+                    /* for (int i = doc1.Paragraphs.Count; i >= 6; i-- )
+                        {
+                            Word.Range rng2 = doc1.Paragraphs[i].Range;    I AM NOT SURE IF I NEED THIS BECAUSE MY PROJECT IS VERY
+                            rng2.Select();                                 SPECIFIC TO A CERTIAN KIND OF DOCUMENT
+                            rng2.Paragraphs.IndentFirstLineCharWidth(4);
+                            rng2.Select();
+                        }*/
+                    
+                         rng1.Select();
+
+                        object firstPage = true;
+
+                    foreach (Word.Section section in doc1.Application.ActiveDocument.Sections)  //doenst fully work yet
+                    {
+                        
+                        Word.Range headerRange = section.Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+                        
+                        headerRange.Fields.Add(headerRange, Word.WdFieldType.wdFieldPage);  //this is supposed to insert a page number
+                        headerRange.Font.Size = 12;                                         //with you last name before it
+                        headerRange.Text = "Last Name";
+                      
+                        // headerRange.p
+                        
+                        
+                        headerRange.Paragraphs.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight; //makes the header & page # on the right
+
+                        
+                    }
+                    
+                    //USE THIS FOR THE INDENTING LARGE QOUTES: doc1.Application.ActiveDocument.Content.ParagraphFormat.TabIndent(1);
+
+                }
+
+                catch
+                {
+                    Console.WriteLine("An error occured. Please check the file name of your word document, and whether the word document is valid.");
+                    //if the file does not exist then an error appears
+                }
+
+                finally
+                {
+
+                    
+                  Object fileFormat = Word.WdSaveFormat.wdFormatDocument;   //These were origionally ment to replace all of the missings in the 
+                    Object lockComments = true;                             //.SaveAs method, but they were not needed
+                    Object password = false;
+                    Object addToRecentFiles = true;
+                    Object writePassword = false;
+                    Object readOnlyRecommended = false;
+                    Object embedTrueTypeFonts = true;
+                    Object saveNativePictureFormat = false;  //I DONT THINK THESE ACTUALLY DO ANYTHING!!!!!
+                    Object saveFormsData = true;
+                    Object saveAsAOCELetter = true;
+                    Object encoding = true;
+                    Object insertLineBreaks = true;
+                    Object allowSubstitutions = true;
+                    Object lineEnding = Word.WdLineEndingType.wdCRLF;
+                    Object addBiDiMarks = true;
+                    
+                    doc1.SaveAs(ref saveAsAFile, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing, ref missing);
+                    Object saveChanges = Word.WdSaveOptions.wdSaveChanges;  //sets a variable to the changes that have been saved
+                    Object ogFormat = Word.WdOriginalFormat.wdOriginalDocumentFormat;
+                    Object routeDoc = true;
+                   
+                    doc1.Close(saveChanges, ogFormat, routeDoc);  //Closes the Application
+                }
+            }
+
+            else
+            {
+
+                Console.WriteLine("an Error has occured, please check the file name");
+            }
+        }
+
+        private static void InsertLineBreaks(Word.Document doc1)   //This just appeared one day and I have been afraid to remove it
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Word.Document actionMethod(Word.Document docu)  //this is no longer used, but it is a fall back incase something goes wrong later
+        {
+
+           
+            object start = docu.Paragraphs[1].Range;
+            object end = docu.Content.End; ;
+            object spacingStrt = docu.Paragraphs[5].Range;
+            object spacingEnd = docu.Content.End;
+            object indentStyle = "Normal Indent";
+
+            //docu.Range(ref start, ref end).Select();  // POTENTIAL ALTERNATIVE
+            Word.Range rng1 = docu.Content; 
+            rng1.Font.Size = 12;
+            rng1.Font.Name = "Calibri";
+            rng1.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+            rng1.Select();
+            rng1.set_Style(ref indentStyle);
+            rng1.Select();
+            rng1.Find.ClearFormatting(); //FIND OUT HOW TO FIX THE RANGE
+            rng1.Select();
+
+            Word.Range rng2 = docu.Range(ref spacingStrt, ref spacingEnd);
+            rng2.Select();
+            //docu.FirstLineIndent(docu, ind);  //try and figure put how to get and set
+            rng2.Select();
+            docu.Paragraphs.Space2();
+            rng2.Select();
+            return docu;
+        }
+
+        
+
+
+
+        }
+
+    }
+
+
+
+
